@@ -72,9 +72,11 @@ cov_model <- function(dados, n, cov, grupos){
 
 cov_model(dados = am, n = 1, cov = cov_mtcars, grupos = F)
 test2 <- glm(am~cyl + hp + mpg, family = binomial())
+test2
 
 null_model(dados = am, n = 1)
 nulo <- glm(am~1, binomial())
+nulo
 
 #Note que o R chama de Residual Deviance, -2*log-verossimilhancao do modelo:
 # e de Null Deviance -2*ll. do modelo nulo:
