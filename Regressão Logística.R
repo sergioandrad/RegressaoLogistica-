@@ -14,23 +14,22 @@ ll <-  function(beta){
           return(-soma)
 }
 res <- suppressWarnings(optim(ll, par = c(0), method = 'Brent', upper = 10^8, lower = -10^8))
-parametro <- res$par
-verossimilhança <- res$value
-cat(paste('Parâmetro estimado:',as.character(round(parametro, digits =3)),'\n',
+parametro_nulo <- res$par
+verossimilhança_nulo <- res$value
+cat(paste('Parâmetro estimado do modelo nulo:',as.character(round(parametro_nulo, digits =3)),'\n',
           'Verossimilhança completa do modelo nulo:',as.character(round(res$value, digits =3))), "\n",
-          'Graus de liberdade',length(dados)-1                                                                       
-                                                                         )
-
+          'Graus de liberdade',length(dados)-1) 
 }
 
 null_model(dados, n = 5)
 
-fail <- n - dados
-test <-glm(formula = cbind(dados, fail) ~ 1, family= binomial())
+test <-glm(formula = cbind(dados, 5 - dados) ~ 1, family= binomial())
 test
 logLik(test)
 
-#Modelo com cováriaveis e tamanhos variados de grupos utilizado base public mtcars:
+#Modelo com cováriaveis e tamanhos variados de grupos utilizado base publica mtcars
+#não esqueça de dar attach nos dados:
+
 summary(mtcars)
 attach(mtcars) 
 
@@ -61,20 +60,32 @@ cov_model <- function(dados, n, cov, grupos){
                                upper = 10^3, lower = -10^3)}
     parametro <- res$par
     verossimilhança <- res$value
+   
     cat('Parâmetro estimado:', parametro,'\n',
-              'Verossimilhança completa do modelo nulo:', verossimilhança, "\n",
-        'Graus de liberdade',length(dados)-ncol(cov)-1                                                                       
-    )
+              'Verossimilhança completa do modelo ajustado:', -verossimilhança, "\n",
+        'Graus de liberdade',length(dados)-ncol(cov)-1    )
+    cat('\n')
+    null_model(dados, n)
 }
 
-#Testando com dados individuais:
+#Testando com dados individuais, grupos de tamanho 1:
+
 cov_model(dados = am, n = 1, cov = cov_mtcars, grupos = F)
-
 test2 <- glm(am~cyl + hp + mpg, family = binomial())
-logLik(test)
-test2
 
-#Testando com dados agrupados:
+null_model(dados = am, n = 1)
+nulo <- glm(am~1, binomial())
+
+#Note que o R chama de Residual Deviance, -2*log-verossimilhancao do modelo:
+# e de Null Deviance -2*ll. do modelo nulo:
+
+-2*logLik(test2)
+-2*logLik(nulo)
+
+#Para achar o ganho em adicionar covariaveis, faça Null Dev. - Res. Dev.:
+round(-2*(logLik(nulo)- logLik(test2)), digits =2)
+
+#Testando com dados em grupos de n's diferentes:
 set.seed(100)
 dados_teste <- c(rbinom(n = 16, size = 5, prob = 0.1),rbinom(n = 16, size = 8, prob = 0.1))
 n2 <- c(rep(5,16),rep(8,16))
